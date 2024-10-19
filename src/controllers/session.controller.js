@@ -7,24 +7,45 @@ import { logger } from '../utils/errors/logger.js';
 
 
 
-const passportRegister = async(req, res)=>{
-    const user = req.user
-    const userSession = {
-        id: user._id,
-        name: user.name,
-        role: user.role
+const passportRegister = async (req, res) => {
+    try {
+        // Verificar si el usuario existe en req.user
+        const user = req.user;
+
+        if (!user) {
+            // Si no hay usuario, enviar una respuesta de error
+            return res.status(400).json({ error: 'Registro fallido, no se pudo crear el usuario o ya existe.' });
+        }
+
+        // Crear el objeto userSession para generar el token JWT
+        const userSession = {
+            id: user._id,
+            name: user.name,
+            role: user.role
+        };
+
+        // Generar el token JWT
+        const userToken = await jwt.sign(userSession, config.auth.jwt.SECRET, { expiresIn: "1d" });
+
+        // Log para verificar que el token se esté generando correctamente
+        logger.info('Setting cookie with token:', userToken);
+        res.cookie(config.auth.jwt.COOKIE, userToken, { httpOnly: true });
+        return res.status(201).json({ message: 'Usuario registrado y autenticado', token: userToken });
+
+    } catch (err) {  
+        logger.error('Error en passportRegister:', err);
+        return res.status(500).json({ error: 'Ocurrió un error interno en el servidor' });
     }
-    const userToken = await jwt.sign(userSession, config.auth.jwt.SECRET, {expiresIn: "1d"});
-    logger.info('Setting cookie with token:', userToken)
-    res.cookie(config.auth.jwt.COOKIE, userToken, {httpOnly:true})//.redirect('/profile)
-}
+};
+
+
 const passportLogin = async(req, res)=>{
     const sessionUser = new UserDTOSession(req.user);
 
     const sessionUserObject = {...sessionUser}
 
     const userToken = await jwt.sign(sessionUserObject, config.auth.jwt.SECRET, {expiresIn:"1d"});
-    logger.info('Setting cookie with token:', userToken)
+    logger.info(`Setting cookie with token: ${userToken}`)
     res.cookie(config.auth.jwt.COOKIE, userToken, {httpOnly:true})//.redirect('/profile)
 }
 

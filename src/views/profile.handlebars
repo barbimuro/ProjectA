@@ -1,0 +1,24 @@
+
+    <h1>Perfil de Usuario</h1>
+
+    <!-- Información del perfil -->
+    <div>
+        <label><strong>Nombre:</strong></label>
+        <p>{{name}}</p> <!-- Aquí se mostraría el nombre del usuario -->
+
+        <label><strong>Correo Electrónico:</strong></label>
+        <p>{{email}}</p> <!-- Aquí se mostraría el email del usuario -->
+
+        <label><strong>Rol:</strong></label>
+        <p>{{role}}</p> <!-- Aquí se mostraría el rol del usuario, por ejemplo, "Admin" o "Usuario" -->
+    </div>
+
+    <!-- Botón para editar perfil -->
+    <form action="/profile/edit" method="GET">
+        <button type="submit">Editar Perfil</button>
+    </form>
+
+    <!-- Botón para cerrar sesión -->
+    <form action="/logout" method="POST">
+        <button type="submit">Cerrar Sesión</button>
+    </form>

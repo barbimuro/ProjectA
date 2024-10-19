@@ -6,6 +6,7 @@ import { ExtractJwt, Strategy as JWTStrategy } from "passport-jwt";
 import UserDAO from "../db/UserDAO.js";
 import AuthService from "../services/AuthService.js";
 import config from "./config.js";
+import { logger } from "../utils/errors/logger.js";
 
 const LocalStrategy = local.Strategy;
 const authService = new AuthService();
@@ -17,7 +18,7 @@ const initializePassportConfig = () =>{
         if(!firstName || !lastName){
             return done(null, false, {message:"Incomplete values"})
         }
-        const user = userService.getUserByEmail(email);
+        const user = await userService.getUserByEmail(email);
         if(user){
             return done(null, false, {message:"User already exists"})
         }
@@ -30,7 +31,9 @@ const initializePassportConfig = () =>{
             role: 'user'
         }
         const result = await userService.createUser(newUser);
+        logger.info(newUser)
         return done(null, result)
+       
     }))
     passport.use('login', new LocalStrategy({usernameField:'email'}, async(req, email, password, done)=>{
         const user = userService.getUserByEmail(email)

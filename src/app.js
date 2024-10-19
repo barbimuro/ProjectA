@@ -9,7 +9,8 @@ import config from "./config/config.js";
 import initializePassportConfig from './config/passport.config.js';
 
 import userRouter from './routes/user.router.js';
-import viewRouter from './routes/view.router.js'
+import viewRouter from './routes/view.router.js';
+import sessionRouter from './routes/session.router.js'
 
 const app =  express()
 
@@ -37,3 +38,4 @@ const connectDB = mongoose.connect(config.mongo.URL)
 
 app.use('/', viewRouter)
 app.use('/api/users', userRouter)
+app.use('/api/sessions', sessionRouter)
