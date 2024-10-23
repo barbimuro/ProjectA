@@ -5,19 +5,22 @@ const collection = "Project"
 const schema = new mongoose.Schema({
     name:{
         type: String,
-        require:true
+        required:true
     },
     description:{
         type:String,
-        require:true
+        required:true
     },
-    fechaCreacion:{
+    creationDate:{
         type:Date,
-        default: Date.now()
+        default: Date.now
     },
-    fechaEntrega:{
+    dueDate:{
         type: Date,
-        require:true
+        required:true
+    },
+    author:{
+        type: mongoose.Schema.Types.ObjectId, ref:'User'
     }
 })
 const ProjectModel = mongoose.model(collection,schema);

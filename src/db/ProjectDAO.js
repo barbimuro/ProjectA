@@ -13,7 +13,7 @@ export default class ProjectDAO{
     async updateProject(id, info){
         return ProjectModel.findByIdAndUpdate(id, info)
     }
-    async deleteUser(id){
+    async deleteProject(id){
         return ProjectModel.findByIdAndDelete(id)
     }
 }
