@@ -1,4 +1,4 @@
-import ProjectModel from "./models/user.model.js";
+import ProjectModel from "./models/project.model.js";
 
 export default class ProjectDAO{
     async getProjects(){
