@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import UserDTOSession from "../DTO/UserParsed.js";
 import config from '../config/config.js';
 import { logger } from '../utils/errors/logger.js';
+import authService from '../services/AuthService.js'
 
 
 
@@ -28,7 +29,7 @@ const passportRegister = async (req, res) => {
         const userToken = await jwt.sign(userSession, config.auth.jwt.SECRET, { expiresIn: "1d" });
 
         // Log para verificar que el token se esté generando correctamente
-        logger.info('Setting cookie with token:', userToken);
+        logger.info('At session.controller.js, on passportRegister: Setting cookie with token:', userToken);
         res.cookie(config.auth.jwt.COOKIE, userToken, { httpOnly: true });
         return res.status(201).json({ message: 'Usuario registrado y autenticado', token: userToken });
 
@@ -38,15 +39,57 @@ const passportRegister = async (req, res) => {
     }
 };
 
+const regularRegister = async (req, res)=>{
+   try {
+    const {firstName, lastName, email, password} =  req.body;
+    if(!firstName || !lastName || !email || !password){
+        return res.status(400).send({ status: "error", error: "Incomplete values" });
+    }
+    const user = await userService.getUserByEmail(email);
+    if(user){
+        return done(null, false, {message:"User already exists"})
+    }
+    const hashedPassword = await authService.hashPassword(password)
+    const newUser = {
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        role: 'user'
+    }
+    const result = await userService.createUser(newUser);
+    /* const userSession = {
+            id: user._id,
+            name: user.name,
+            role: user.role
+        };
+
+        // Generar el token JWT
+        const userToken = await jwt.sign(userSession, config.auth.jwt.SECRET, { expiresIn: "1d" });
+
+        // Log para verificar que el token se esté generando correctamente
+        logger.info('At session.controller.js, on regularRegister: Setting cookie with token:', userToken);
+        res.cookie(config.auth.jwt.COOKIE, userToken, { httpOnly: true });
+        return res.status(201).json({ message: 'Usuario registrado y autenticado', token: userToken });*/
+    logger.info("At session.controller.js, on regularRegister:",newUser)
+    res.send({ status: "success", payload: result._id });} catch(error){
+
+    }
+}
+
 
 const passportLogin = async(req, res)=>{
-    const sessionUser = new UserDTOSession(req.user);
+    const user = req.user
+    logger.info("At session.controller.js, on passportLogin:",user)
+    const sessionUser = new UserDTOSession(user);
 
     const sessionUserObject = {...sessionUser}
 
+    console.log(sessionUserObject)
+
     const userToken = await jwt.sign(sessionUserObject, config.auth.jwt.SECRET, {expiresIn:"1d"});
-    logger.info(`Setting cookie with token: ${userToken}`)
-    res.cookie(config.auth.jwt.COOKIE, userToken, {httpOnly:true})//.redirect('/profile)
+    logger.info(`At session.controller.js, on passportLogin: Setting cookie with token: ${userToken}`)
+    res.cookie(config.auth.jwt.COOKIE, userToken, {httpOnly:true}).redirect('/profile')
 }
 
 const passportGitHubCallback = async(req, res)=>{
@@ -56,7 +99,7 @@ const passportGitHubCallback = async(req, res)=>{
         role: req.user.role
     };
     const userToken = await jwt.sign(userSession, config.auth.jwt.SECRET, {expiresIn: "1d"});
-    logger.info('Setting cookie with token:', userToken)
+    logger.info('At session.controller.js, on passportGitHubCallback: Setting cookie with token:', userToken)
     res.cookie(config.auth.jwt.COOKIE, userToken)//.redirect('/profile)
 }
 const passportCallCurrent = async(req, res)=>{
@@ -88,6 +131,7 @@ const failureRegister = async(req, res)=>{
 
 export default {
     passportRegister, 
+    regularRegister,
     passportLogin, 
     passportGitHubCallback, 
     passportCallCurrent,

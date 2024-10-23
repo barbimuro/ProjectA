@@ -33,7 +33,7 @@ const logger = winston.createLogger({
 })
 const addLogger=(req, res, next)=>{
 req.logger=logger
-req.logger.info(`${req.method} en ${req.url} - ${new Date().toLocaleDateString()}`)
+req.logger.info(`On logger.js: ${req.method} en ${req.url} - ${new Date().toLocaleDateString()}`)
 next()
 }
 

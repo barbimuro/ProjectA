@@ -31,12 +31,13 @@ const initializePassportConfig = () =>{
             role: 'user'
         }
         const result = await userService.createUser(newUser);
-        logger.info(newUser)
+        logger.info("At passport.config.js on register:", newUser)
         return done(null, result)
        
     }))
-    passport.use('login', new LocalStrategy({usernameField:'email'}, async(req, email, password, done)=>{
+    passport.use('login', new LocalStrategy({usernameField:'email', passReqToCallback:true}, async(req, email, password, done )=>{
         const user = await userService.getUserByEmail(email)
+        console.log(user)
        
        const maxAttempts = 4;
        const lockTime = 2 * 60 * 1000; 
@@ -44,7 +45,7 @@ const initializePassportConfig = () =>{
         if(!user){
             return done(null, false, {message:"Incorrect credentials"})
         }
-        const isValidPassword = authService.validatePassword(password, user.password)
+        const isValidPassword = await authService.validatePassword(password, user.password)
 
         if(user.lockUntil && user.lockUntil > Date.now()){
             return done(null, false, {message:"Account is locked, please try again later"})
@@ -74,11 +75,12 @@ const initializePassportConfig = () =>{
         clientSecret: config.auth.github.CLIENT_SECRET,
         callbackURL: 'http://localhost:8080/api/sessions/githubcallback'
     }, async(token, refreshToken, profile, done)=>{
+        logger.info(profile)
         const userInfo = profile._json
         if(!userInfo){
             return done(null, false, {message:"Error login"})
         }
-        const user = await userService.getUserByEmail(userInfo.email)
+       try{ const user = await userService.getUserByEmail(userInfo.email)
         if(user){
             return done(null, user._id)
         }
@@ -89,13 +91,20 @@ const initializePassportConfig = () =>{
             email: userInfo.email
         }
         const result = await userService.createUser(newUser)
-        return done(null, result)
+        return done(null, result)}  catch (error) {
+            logger.error("Error fetching user: ", error);
+            return done(null, false, { message: "Internal server error" });
+        }
     }))
     passport.use('current', new JWTStrategy({
         secretOrKey: config.auth.jwt.SECRET,
         jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor])
     }, async(payload, done)=>{
-        return done(null, payload)
+            if (payload) {
+        return done(null, payload); 
+    } else {
+        return done(null, false);
+    }
     }))
     function cookieExtractor(req) {
        return req?.cookies?.[config.auth.jwt.COOKIE]
