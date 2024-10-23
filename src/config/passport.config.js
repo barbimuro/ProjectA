@@ -36,14 +36,37 @@ const initializePassportConfig = () =>{
        
     }))
     passport.use('login', new LocalStrategy({usernameField:'email'}, async(req, email, password, done)=>{
-        const user = userService.getUserByEmail(email)
+        const user = await userService.getUserByEmail(email)
+       
+       const maxAttempts = 4;
+       const lockTime = 2 * 60 * 1000; 
+
         if(!user){
             return done(null, false, {message:"Incorrect credentials"})
         }
         const isValidPassword = authService.validatePassword(password, user.password)
+
+        if(user.lockUntil && user.lockUntil > Date.now()){
+            return done(null, false, {message:"Account is locked, please try again later"})
+        }
+
+        if (user.password === 'GitHubUser' || user.password === null) {
+            return done(null, false, {message: 'Please login using your github account.'});
+            }
+
         if(!isValidPassword){
+            user.loginAttempts = (user.loginAttempts || 0) +1;
+            if(user.loginAttempts >=  maxAttempts){
+                user.lockUntil = Date.now()+ lockTime
+            }
+            await userService.updateUser(user)
             return done(null, false, {message:"Incorrect credentials"})
         }
+
+        user.loginAttempts = 0;
+        user.lockUntil = undefined;
+        await userService.updateUser(user)
+        
         return done(null, user)
     }))
     passport.use('github', new GitHubStrategy({
@@ -61,8 +84,8 @@ const initializePassportConfig = () =>{
         }
         const newUser = {
             firstName: userInfo.name.split(' ')[0],
-            lastName: userInfo.name.split(' ')[1],
-            password: '',
+            lastName: userInfo.name.split(' ')[1]||' ',
+            password: 'GitHubUser',
             email: userInfo.email
         }
         const result = await userService.createUser(newUser)
@@ -75,7 +98,7 @@ const initializePassportConfig = () =>{
         return done(null, payload)
     }))
     function cookieExtractor(req) {
-        req?.cookies?.[config.auth.jwt.COOKIE]
+       return req?.cookies?.[config.auth.jwt.COOKIE]
     }
 }
 export default initializePassportConfig

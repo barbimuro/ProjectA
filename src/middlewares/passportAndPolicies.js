@@ -7,14 +7,13 @@ const strategyPolicies = (strategy, role) =>{
     const policiesMiddleware = executePolicies(role)
 
     if(!passportStrategy){
-        logger.warning("All endpoints must have a strategy");
-        return (req, res, next) => res.status(500).send("Server Error: No strategy defined.");
+        logger.warning("No strategy defined for this endpoint, continuing without strategy");
     }
     if(!policiesMiddleware){
         logger.warning("All endpoints must have policies");
         return (req, res, next) => res.status(500).send("Server Error: No policies defined.");
     }
-    return[passportStrategy, policiesMiddleware]
+    return passportStrategy ? [passportStrategy, policiesMiddleware] : [policiesMiddleware]
 }
 
 export default strategyPolicies

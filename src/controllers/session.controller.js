@@ -74,8 +74,24 @@ const passportCallCurrent = async(req, res)=>{
     }
 }
 
+const logout = async(req, res)=>{
+    res.clearCookie(config.auth.jwt.COOKIE).redirect('/login')
+}
+
+const failureLogin = async(req, res)=>{
+    res.send({ status: "error", error: "Failed login attempts" });
+}
+
+const failureRegister = async(req, res)=>{
+    res.send({ status: "error", error: "Failed register attempts" });
+}
+
 export default {
     passportRegister, 
     passportLogin, 
     passportGitHubCallback, 
-    passportCallCurrent}
+    passportCallCurrent,
+    logout,
+    failureLogin,
+    failureRegister
+}
