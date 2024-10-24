@@ -6,6 +6,8 @@ const router = Router()
 
 router.get('/', projectController.getAllProjects)
 
-router.post('/newProject', strategyPolicies('current',(['USER'])), projectController.createNewProject)
+router.post('/newProject', strategyPolicies('current',(['USER'])), projectController.createNewProject);
+
+router.get('/:pid', strategyPolicies('current',['USER']), projectController.getProjectById)
 
 export default router

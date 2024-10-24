@@ -1,3 +1,4 @@
+import { logger } from "../utils/errors/logger.js";
 import ProjectModel from "./models/project.model.js";
 
 export default class ProjectDAO{
@@ -15,5 +16,27 @@ export default class ProjectDAO{
     }
     async deleteProject(id){
         return ProjectModel.findByIdAndDelete(id)
+    }
+    async addTaskToProject(id, task){
+        try {
+            if(!task){
+                logger.info("In ProjectDAO.js: Please add task");
+                return;
+            }
+           // await this.updateProject(id, task,{new:true}).populate('task')
+           const project = await ProjectModel.findById(id);
+           if (!project) {
+               logger.error(`Project with id ${id} not found`);
+               return;
+           }
+
+           project.tasks.push(task);
+           await project.save();
+
+           return ProjectModel.findById(id).populate('Task');
+           
+        } catch (error) {
+            logger.error(`Error adding task to project: ${error.message}`);
+        }
     }
 }

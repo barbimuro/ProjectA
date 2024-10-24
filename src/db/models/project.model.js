@@ -20,8 +20,14 @@ const schema = new mongoose.Schema({
         required:true
     },
     author:{
-        type: mongoose.Schema.Types.ObjectId, ref:'User'
-    }
+        type: mongoose.Schema.Types.ObjectId, 
+        ref:'User',
+        required:true
+    },
+    tasks:[{
+        type: mongoose.Schema.Types.ObjectId, 
+        ref:'Task'
+    }]
 })
 const ProjectModel = mongoose.model(collection,schema);
 export default ProjectModel

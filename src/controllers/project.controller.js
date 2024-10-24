@@ -1,3 +1,4 @@
+import mongoose, { Mongoose } from 'mongoose';
 import ProjectDAO from '../db/ProjectDAO.js';
 
 const projectService = new ProjectDAO()
@@ -32,7 +33,25 @@ const createNewProject = async(req, res)=>{
     }
 }
 
+const getProjectById = async(req, res) =>{
+    try {
+        const projectId = req.params.pid 
+        if(!mongoose.Types.ObjectId.isValid(projectId)){
+            return res.status(400).send({ status: "error", error: "Invalid cart ID" });
+        }
+        const project = await projectService.getProjectById(projectId)
+        if(!project){
+            return res.status(404).send({status:"error", error:"Project not found"})
+        }
+        res.send({status:"success", payload: project})
+    } catch (error) {
+        res.status(500).send({ status: "error", error: "Internal server error" });
+    }
+}
+
+
 export default {
     getAllProjects,
-    createNewProject
+    createNewProject,
+    getProjectById
 }
