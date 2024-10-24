@@ -23,7 +23,6 @@ export default class ProjectDAO{
                 logger.info("In ProjectDAO.js: Please add task");
                 return;
             }
-           // await this.updateProject(id, task,{new:true}).populate('task')
            const project = await ProjectModel.findById(id);
            if (!project) {
                logger.error(`Project with id ${id} not found`);
@@ -34,7 +33,7 @@ export default class ProjectDAO{
            await project.save();
 
            return ProjectModel.findById(id).populate('Task');
-           
+
         } catch (error) {
             logger.error(`Error adding task to project: ${error.message}`);
         }

@@ -99,13 +99,20 @@ const initializePassportConfig = () =>{
     passport.use('current', new JWTStrategy({
         secretOrKey: config.auth.jwt.SECRET,
         jwtFromRequest: ExtractJwt.fromExtractors([cookieExtractor])
-    }, async(payload, done)=>{
-            if (payload) {
-        return done(null, payload); 
-    } else {
-        return done(null, false);
-    }
-    }))
+    }, async (payload, done) => {
+        try {
+            const user = await userService.getUserById(payload.id); 
+            if (!user) {
+                console.log('No user found for ID:', payload.id);
+                return done(null, false);
+            }
+            console.log('User found:', user);
+            return done(null, user);
+        } catch (error) {
+            console.error('Error in JWT strategy:', error);
+            return done(error, false);
+        }
+    }));
     function cookieExtractor(req) {
        return req?.cookies?.[config.auth.jwt.COOKIE]
     }
