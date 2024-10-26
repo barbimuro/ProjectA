@@ -16,4 +16,7 @@ export default class TaskDAO{
     async deleteTask(id){
         return TaskModel.findByIdAndDelete(id)
     }
+    async getTaskByProject(projectId){
+        return TaskModel.find({project:projectId})
+    }
 }
